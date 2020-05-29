@@ -36,6 +36,7 @@ A tool for an efficient configuration of N1QL full text search queries.
     - [QueryString](#querystring)
 - [Results](#results)
 - [Error handling](#error-handling)
+- [Copyright](#copyright)
 
 ## About
 
@@ -797,3 +798,6 @@ NEFTS returns a pointer to an error object adapted to web servers.
 | :--- | :--- | :--- |
 | Status | int | The http status of the error. |
 | Message | string | Describes the nature of the error. |
+
+## Copyright
+2020 Kushuh - [MIT license](#https://github.com/Kushuh/nefts-go/blob/master/LICENSE)
