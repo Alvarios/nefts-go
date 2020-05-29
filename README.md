@@ -160,8 +160,8 @@ Labels: map[string][]string {
 }
 ```
 
-Thus, you tell NEFTS that for this particular query, the `labels:` mark is
-only going to look inside the label fields.
+Thus, you tell NEFTS that for this particular query, the `label:` mark is
+only going to look inside the labels fields.
 
 #### Aliases
 
