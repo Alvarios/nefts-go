@@ -47,7 +47,7 @@ This function returns two results :
 
 ## Config
 
-First, create a configuration interface. You can use a specific configuration
+First, create a configuration object. You can use a specific configuration
 for each of your methods, depending on your needs.
 
 Minimal example:
@@ -156,7 +156,7 @@ would be :
 
 ```go
 Labels: map[string][]string {
-    "labels": ["labels"]
+    "labels": ["label"]
 }
 ```
 
