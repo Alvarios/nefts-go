@@ -8,4 +8,5 @@ type Options struct {
 	QueryString string `json:"query_string"`
 	Labels map[string][]string `json:"labels"`
 	LabelsOptions map[string]LabelOption `json:"labels_options"`
+	Config Config `json:"config"`
 }
