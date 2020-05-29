@@ -1,7 +1,7 @@
 package selectMethods
 
 import (
-	"github.com/Kushuh/nefts-go/config"
+	"nefts/config"
 	"strings"
 )
 

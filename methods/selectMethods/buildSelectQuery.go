@@ -1,6 +1,6 @@
 package selectMethods
 
-import "github.com/Kushuh/nefts-go/config"
+import "nefts/config"
 
 func BuildSelectQuery(
 	query map[string]string,

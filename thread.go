@@ -2,11 +2,11 @@ package nefts
 
 import (
 	"fmt"
-	"github.com/Kushuh/nefts-go/config"
-	"github.com/Kushuh/nefts-go/methods"
-	"github.com/Kushuh/nefts-go/methods/orderMethods"
-	"github.com/Kushuh/nefts-go/methods/selectMethods"
-	"github.com/Kushuh/nefts-go/methods/whereMethods"
+	"nefts/config"
+	"nefts/methods"
+	"nefts/methods/orderMethods"
+	"nefts/methods/selectMethods"
+	"nefts/methods/whereMethods"
 	"strconv"
 )
 

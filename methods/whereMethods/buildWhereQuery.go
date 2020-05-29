@@ -1,8 +1,8 @@
 package whereMethods
 
 import (
-	"github.com/Kushuh/nefts-go/config"
-	"github.com/Kushuh/nefts-go/utils"
+	"nefts/config"
+	"nefts/utils"
 )
 
 func BuildWhereQuery(
