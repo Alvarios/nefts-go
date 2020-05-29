@@ -28,27 +28,27 @@ func BuildQueryString(
 	}
 
 	// Negative value disable max query length. Default is 1000.
-	if params.Parameters.MaxQueryLength > 0 && len(options.QueryString) > options.Config.Parameters.MaxQueryLength {
-		options.QueryString = options.QueryString[:params.Parameters.MaxQueryLength]
+	if options.Config.Parameters.MaxQueryLength > 0 && len(options.QueryString) > options.Config.Parameters.MaxQueryLength {
+		options.QueryString = options.QueryString[:options.Config.Parameters.MaxQueryLength]
 	}
 
 	// Convert string to array of words. If labels are defined, extract those labels into different categories.
-	parsed := methods.ParseQueryString(options.QueryString, params.Labels)
+	parsed := methods.ParseQueryString(options.QueryString, options.Labels)
 
 	selector, err := selectMethods.BuildSelectQuery(
 		parsed,
-		params.Bucket,
+		options.Config.Bucket,
 		options.Fields,
 		options.Joins,
-		params.LabelsOptions,
+		options.LabelsOptions,
 	)
 
 	if err != nil {
 		return "", err
 	}
 
-	where := whereMethods.BuildWhereQuery(parsed, options.Where, params.LabelsOptions)
-	order := orderMethods.BuildOrderQuery(parsed, options.Order, params.LabelsOptions)
+	where := whereMethods.BuildWhereQuery(parsed, options.Where, options.LabelsOptions)
+	order := orderMethods.BuildOrderQuery(parsed, options.Order, options.LabelsOptions)
 
 	finalQuery := selector + "\n\t" + where + "\n\t" + order + "\n\tLIMIT " +
 		strconv.FormatUint(end - start, 10) + " OFFSET " + strconv.FormatUint(start, 10)
@@ -68,11 +68,11 @@ func Thread(
 		return nil, err
 	}
 
-	if params.Parameters.Debug {
+	if options.Config.Parameters.Debug {
 		fmt.Println(queryString)
 	}
 
-	results, clusterErr := params.Cluster.Query(queryString, nil)
+	results, clusterErr := options.Config.Cluster.Query(queryString, nil)
 	if clusterErr != nil {
 		return nil, &config.Error{
 			Status: 500,
