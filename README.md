@@ -800,4 +800,4 @@ NEFTS returns a pointer to an error object adapted to web servers.
 | Message | string | Describes the nature of the error. |
 
 ## Copyright
-2020 Kushuh - [MIT license](#https://github.com/Kushuh/nefts-go/blob/master/LICENSE)
+2020 Kushuh - [MIT license](https://github.com/Kushuh/nefts-go/blob/master/LICENSE)
