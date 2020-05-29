@@ -1,6 +1,6 @@
 # N1QL Easy Full Text Search (Go Edition)
 
-A simple tool for an efficient configuration of N1QL full text search queries.
+A tool for an efficient configuration of N1QL full text search queries.
 
 ## Summary
 
