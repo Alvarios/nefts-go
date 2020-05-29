@@ -1,7 +1,7 @@
 package selectMethods
 
 import (
-	nefts "n1ql_better_queries"
+	"github.com/Kushuh/nefts-go"
 	"github.com/Kushuh/nefts-go/config"
 	"strings"
 )
