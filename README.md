@@ -83,8 +83,7 @@ This function returns two results :
 ## Options
 
 Parameters that can change depending on context. You can either control them
-from client or server side. This parameter is optional. If so, pass an empty
-Options structure.
+from client or server side.
 
 Full example:
 ```go
