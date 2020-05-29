@@ -2,6 +2,41 @@
 
 A simple tool for an efficient configuration of N1QL full text search queries.
 
+## Summary
+
+- [About](#about)
+- [NEFTS usage](#nefts-usage)
+- [Config](#config)
+    - [Cluster](#cluster)
+    - [Bucket](#bucket)
+    - [Parameters](#parameters)
+    - [Labels](#labels)
+        - [Label Example](#label-example)
+        - [Aliases](#aliases)
+        - [Nested fields](#nested-fields)
+        - [Labels with joins](#labels-with-joins)
+            - [Labels on computed tuple](#labels-on-computed-tuple)
+            - [Use the Bucket option](#use-the-bucket-option)
+    - [LabelOptions](#labeloptions)
+        - [Analyzer](#analyzer)
+        - [Fuzziness](#fuzziness)
+        - [Out](#out)
+        - [Weight](#weight)
+        - [Bucket (LabelOptions)](#bucket-labeloptions)
+        - [PhraseMode](#phrasemode)
+        - [RegexpMode](#regexpmode)
+- [Options](#options)
+    - [Fields](#fields)
+    - [Where](#where)
+    - [Joins](#joins)
+        - [Join parameters](#join-parameters)
+        - [Example explanation](#example-explanation)
+        - [JoinQuery](#joinquery)
+    - [Order](#order)
+    - [QueryString](#querystring)
+- [Results](#results)
+- [Error handling](#error-handling)
+
 ## About
 
 N1QL Easy Full Text Search (NEFTS) allow to configure a N1QL query from an 
@@ -95,7 +130,7 @@ config := nefts.config.Config{
 This is the only required parameter. Pass it the Couchbase Cluster you set
 up for your application (see this [setup guide from couchbase](https://docs.couchbase.com/go-sdk/2.1/hello-world/start-using-sdk.html)).
 
-## Bucket
+### Bucket
 
 The bucket in which to perform the search. NEFTS currently doesn't support
 buckets protected by an individual password.
@@ -114,7 +149,7 @@ Global parameters for the function.
 Add optional label marks to your client query string. Label mark restricts a
 term or a group of terms to a specific subset of your documents.
 
-#### Example
+#### Label Example
 
 Let's take an example : say you have the following document in your database.
 ```json
@@ -172,7 +207,7 @@ to the same field, for example, a long version and a shorter one :
 ```go
 Labels: map[string][]string {
     // "l:" and "label:" will both point to the "labels" field.
-    "labels": ["labels", "l"]
+    "labels": ["label", "l"]
 }
 ```
 
@@ -188,7 +223,7 @@ change the configuration to :
 ```go
 Labels: map[string][]string {
     // "l:" and "label:" will both point to the "labels" field.
-    "labels.labelName": ["labels", "l"]
+    "labels.labelName": ["label", "l"]
 }
 ```
 
@@ -199,7 +234,7 @@ Labels: map[string][]string {
 
 You may want to perform FTS on some joined buckets. There are two methods.
 
-##### Label on computed tuple
+##### Labels on computed tuple
 
 By default, labels will filter the tuple produced by the query.
 
@@ -277,7 +312,7 @@ The above join will produce the following result:
 ```
 
 And that's the magic. By default, label will filter the joined tuple rather
-than the documents in table. So knowing this, you can simply:
+than the documents in table. So knowing this, you can simply use :
 
 ```go
 Labels: map[string][]string {
@@ -287,6 +322,8 @@ Labels: map[string][]string {
 ```
 
 ##### Use the Bucket option
+
+This option is part of below [LabelOptions](#labeloptions) section.
 
 The con of above methods is it will ignore fields that are filtered in the
 result. You may want, for example, to search among user with a specific
@@ -306,7 +343,7 @@ LabelOptions: map[string]nefts.config.LabelOption{
 ```
 
 So in case you don't send the achievements to the client, you can still
-take it in account for your search. More details ara provided in the
+take it in account for your search. More details are provided in the
 [below section](#labeloptions).
 
 ### LabelOptions
@@ -391,7 +428,7 @@ input-term and the target text-element.
 Attribute a weight to balance each match score. A higher score means a higher
 importance for a given label.
 
-#### Bucket
+#### Bucket (LabelOptions)
 
 Specify a Bucket to search for labelled terms. This is useful when some fields
 are filtered in a document, but still need to be taken in account in the query.
