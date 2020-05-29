@@ -11,7 +11,6 @@ import (
 )
 
 func BuildQueryString(
-	params config.Config,
 	start uint64,
 	end uint64,
 	options config.Options,
@@ -29,7 +28,7 @@ func BuildQueryString(
 	}
 
 	// Negative value disable max query length. Default is 1000.
-	if params.Parameters.MaxQueryLength > 0 && len(options.QueryString) > params.Parameters.MaxQueryLength {
+	if params.Parameters.MaxQueryLength > 0 && len(options.QueryString) > options.Config.Parameters.MaxQueryLength {
 		options.QueryString = options.QueryString[:params.Parameters.MaxQueryLength]
 	}
 

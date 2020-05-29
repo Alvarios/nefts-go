@@ -6,17 +6,24 @@ A tool for an efficient configuration of N1QL full text search queries.
 
 - [About](#about)
 - [NEFTS usage](#nefts-usage)
-- [Config](#config)
-    - [Cluster](#cluster)
-    - [Bucket](#bucket)
-    - [Parameters](#parameters)
+- [Options](#options)
+    - [Config](#config)
+        - [Cluster](#cluster)
+        - [Bucket](#bucket)
+        - [Parameters](#parameters)
+    - [Fields](#fields)
+    - [Where](#where)
+    - [Joins](#joins)
+        - [Join parameters](#join-parameters)
+        - [Example explanation](#example-explanation)
+        - [JoinQuery](#joinquery)
     - [Labels](#labels)
-        - [Label Example](#label-example)
-        - [Aliases](#aliases)
-        - [Nested fields](#nested-fields)
-        - [Labels with joins](#labels-with-joins)
-            - [Labels on computed tuple](#labels-on-computed-tuple)
-            - [Use the Bucket option](#use-the-bucket-option)
+            - [Label Example](#label-example)
+            - [Aliases](#aliases)
+            - [Nested fields](#nested-fields)
+            - [Labels with joins](#labels-with-joins)
+                - [Labels on computed tuple](#labels-on-computed-tuple)
+                - [Use the Bucket option](#use-the-bucket-option)
     - [LabelOptions](#labeloptions)
         - [Analyzer](#analyzer)
         - [Fuzziness](#fuzziness)
@@ -25,13 +32,6 @@ A tool for an efficient configuration of N1QL full text search queries.
         - [Bucket (LabelOptions)](#bucket-labeloptions)
         - [PhraseMode](#phrasemode)
         - [RegexpMode](#regexpmode)
-- [Options](#options)
-    - [Fields](#fields)
-    - [Where](#where)
-    - [Joins](#joins)
-        - [Join parameters](#join-parameters)
-        - [Example explanation](#example-explanation)
-        - [JoinQuery](#joinquery)
     - [Order](#order)
     - [QueryString](#querystring)
 - [Results](#results)
@@ -62,7 +62,7 @@ NEFTS has a main `Thread()` function to use for your queries. It takes the
 following parameters :
 
 ```go
-queryResults, err := nefts.Thread(config, start, end, options)
+queryResults, err := nefts.Thread(start, end, options)
 ```
 
 Each parameter is required, except options.
@@ -81,29 +81,42 @@ This function returns two results :
 | queryResults | [nefts.config.QueryResults](#results) |
 | err | [nefts.config.Error](#error-handling) |
 
-## Config
+## Options
 
-First, create a configuration object. You can use a specific configuration
-for each of your methods, depending on your needs.
-
-Minimal example:
-
-```go
-config := nefts.config.Config{
-    Cluster: myCouchbaseCluster,
-    Bucket: "myBucket",
-}
-```
+Parameters that can change depending on context. You can either control them
+from client or server side. This parameter is optional. If so, pass an empty
+Options structure.
 
 Full example:
-
 ```go
-config := nefts.config.Config{
-    Cluster: myCouchbaseCluster,
-    Bucket: "myBucket",
-    Parameters: nefts.config.Parameters{
-        MaxQueryLength: 1000,
-        Debug: false,
+options := nefts.config.Options{
+    Config: nefts.config.Config{
+        Cluster: myCouchbaseCluster,
+        Bucket: "myBucket",
+    },
+    Fields: []string{"*", "meta.id"},
+    Where: []string{fmt.Sprintf("b.last_update < %q", timestamp)},
+    Joins: []nefts.config.Join{
+        Join{
+            Bucket: "users",
+            ForeignKey: "authorId",
+            DestinationKey: "author",
+            Fields: ["username", "avatar_url", "sex"],
+        },
+        Join{
+            Bucket: "answers",
+            ForeignKey: "META(b).id",
+            DestinationKey: "answers",
+            Fields: ["*"],
+            JoinKey: "postId"
+        },
+        Join{
+            Bucket: "users",
+            ForeignKey: "authorId",
+            DestinationKey: "answers",
+            Fields: ["username", "avatar_url", "sex"],
+            ForeignParent: "answers"
+        },
     },
     Labels: map[string][]string{
         "genre": ["g", "genre"],
@@ -123,20 +136,51 @@ config := nefts.config.Config{
             Weight: "1",
         },
     },
+    Order: map[string]string{
+        "last_update": "desc"
+    },
+    QueryString: "Borderlands 3 cartels event secret puzzle author:lilux",
 }
 ```
 
-### Cluster
+### Config
+
+First, create a configuration object. You can use a specific configuration
+for each of your methods, depending on your needs.
+
+Minimal example:
+
+```go
+Config : nefts.config.Config{
+    Cluster: myCouchbaseCluster,
+    Bucket: "myBucket",
+}
+```
+
+Full example:
+
+```go
+Config : nefts.config.Config{
+    Cluster: myCouchbaseCluster,
+    Bucket: "myBucket",
+    Parameters: nefts.config.Parameters{
+        MaxQueryLength: 1000,
+        Debug: false,
+    },
+}
+```
+
+#### Cluster
 
 This is the only required parameter. Pass it the Couchbase Cluster you set
 up for your application (see this [setup guide from couchbase](https://docs.couchbase.com/go-sdk/2.1/hello-world/start-using-sdk.html)).
 
-### Bucket
+#### Bucket
 
 The bucket in which to perform the search. NEFTS currently doesn't support
 buckets protected by an individual password.
 
-### Parameters
+#### Parameters
 
 Global parameters for the function.
 
@@ -144,6 +188,273 @@ Global parameters for the function.
 | :--- | :--- | :--- |
 | MaxQueryLength | 1000 | Cap the client query string length to a maximum value. For no maximum, set it to a negative value. |
 | Debug | false | Print the generated N1QL string to log. |
+
+### Fields
+
+A list of fields to filter in the output object. Defaults value is `[]string{"*", "meta.id"}`.
+
+> 💡 Tip : * selects all non meta fields. To select meta fields such as document
+id, use the 'meta.' prefix.
+
+### Where
+
+Write additional filter conditions in N1QL format.
+
+### Joins
+
+Join tables in the query.
+
+#### Join parameters
+
+A minimal join contains the following parameters:
+```go
+Join{
+    Bucket: "users",
+    ForeignKey: "authorId",
+    DestinationKey: "author",
+    Fields: ["username", "avatar_url", "sex"],
+}
+```
+
+| Parameter | Type | Default | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| Bucket | string | - | true | The bucket to join. Has to be in the same Cluster. |
+| ForeignKey | string | - | true | Foreign key in the current table referring to the distant bucket. |
+| DestinationKey | string | - | true | Key in the resulting tuple in which the joined information will be inserted. |
+| Fields | []string | - | true | Fields to filter in the distant document. **(1)** |
+| JoinKey | string | "meta.id" | - | Reference key in the distant document. |
+| ForeignParent | string | - | - | Specify a reference bucket, different from the current one. Useful for nested joins. |
+
+**(1)** You can select all fields using either "all" or "*" selectors. If you
+do so, they will be nested in a data key. For example :
+
+```go
+Join{
+    Bucket: "users",
+    ForeignKey: "authorId",
+    DestinationKey: "author",
+    Fields: ["*", "meta.id"],
+}
+```
+
+will generate the following key in the tuple sent to client :
+
+```json
+{
+  "author": {
+    "id": "my_user_id",
+    "data": {...}
+  }
+}
+```
+
+#### Example explanation
+
+Let's look back at the join we performed. It is a pretty good example about
+the possibilities of a configurable join.
+
+```go
+Joins: []nefts.config.Join{
+    Join{
+        Bucket: "users",
+        ForeignKey: "authorId",
+        DestinationKey: "author",
+        Fields: ["username", "avatar_url", "sex"],
+    },
+    Join{
+        Bucket: "answers",
+        ForeignKey: "meta.id",
+        DestinationKey: "answers",
+        Fields: ["*"],
+        JoinKey: "postId"
+    },
+    Join{
+        Bucket: "users",
+        ForeignKey: "authorId",
+        DestinationKey: "answers",
+        Fields: ["username", "avatar_url", "sex"],
+        ForeignParent: "answers"
+    },
+}
+```
+
+Our database may have, in this case, 3 document schemas :
+
+*posts*
+```json
+{
+  "title": "string",
+  "content": "string",
+  "authorId": "userId"
+}
+```
+
+*answers*
+```json
+{
+  "title": "string",
+  "content": "string",
+  "authorId": "userId",
+  "postId": "postId",
+  "score": "number"
+}
+```
+
+*users*
+```json
+{
+  "username": "string",
+  "avatar_url": "url",
+  "sex": "string"
+}
+```
+
+We want to retrieve our post, all the answers, and link those answers to
+their author.
+
+> ⚠️ Warning : this example shows some bad practice. Please refer to the
+[below section](#joinquery) for a better practice. Following example just serves as a
+demonstration for some specific options.
+
+```go
+Join{
+    Bucket: "users",
+    ForeignKey: "authorId",
+    DestinationKey: "author",
+    Fields: ["username", "avatar_url", "sex"],
+}
+```
+
+The first join is pretty easy to understand. Our post data holds the id of
+its author. But if we want some more information about her or him, we need
+to search in the users table.
+
+Here, we tell NEFTS to look for the document in users table with the ID
+provided by authorId in our document. Then, if found, we want to add the
+username, avatar_url and sex fields to the author key in our result tuple.
+
+```go
+Join{
+    Bucket: "answers",
+    ForeignKey: "meta.id",
+    DestinationKey: "answers",
+    Fields: ["*"],
+    JoinKey: "postId"
+}
+```
+
+Now, we want to retrieve every answer related to our post. It is almost the
+same structure, instead we provide a JoinKey rather than a ForeignKey.
+
+In this scenario, the link information is not holded by our post, but by the
+children, the answers. Instead of updating a large array referencing every
+answer id, we provide the answers an id for their parent post.
+
+So the request is : select every answers document where postId match our current
+document id.
+
+```go
+Join{
+    Bucket: "users",
+    ForeignKey: "authorId",
+    DestinationKey: "answers",
+    Fields: ["username", "avatar_url", "sex"],
+    ForeignParent: "answers"
+}
+```
+
+Finally, we want to retrieve the same author information for each answer as
+we did for the post. So the join configuration is the same as the first one,
+except we specify a ForeignParent bucket.
+
+#### JoinQuery
+
+The above example is a bad practice. If our post has thousands of answers,
+they will all be retrieved at once, leading to poor performances and
+eventually crash of the server.
+
+While above parameters can be used for limited sets of joined data, our
+case would rather require, for example, to only retrieve the top post,
+based on some custom criterias.
+
+Here comes the power of N1QL joins : a Join clause can hide a full nested query
+inside !
+
+Let's take again the above example, and this time try to only join the most
+rated post. Since we don't perfom nested FTS, we will go with minimal
+configuration :
+
+```go
+config := nefts.config.Config{
+    Cluster: myCouchbaseCluster,
+    Bucket: "answers",
+}
+```
+
+Let's now build a minimal Options parameter :
+```go
+options := nefts.config.Options{
+    Joins: []nefts.config.Join{
+        Join{
+            Bucket: "users",
+            ForeignKey: "authorId",
+            DestinationKey: "author",
+            Fields: ["username", "avatar_url", "sex"],
+        },
+    },
+    Order: map[string]string{
+        "score": "desc"
+    },
+}
+```
+
+Our query will just look up for the answers, ordered by descending score,
+and link them with their author.
+
+We just want the most rated post. So let's just set the limit to 1.
+But we don't actually want to run a full thread calls : we just need to build
+the nested query string. Then, for better performance, run the whole thing in
+one single call. This is where the JoinQuery option comes.
+
+JoinQuery takes every NEFTS Thread arguments as parameters. We can now
+transform our original declaration:
+
+```go
+baseOptions := nefts.config.Options{
+    Fields: []string{"*", "meta.id"},
+    Where: []string{fmt.Sprintf("b.last_update < %q", timestamp)},
+    Joins: []nefts.config.Join{
+        Join{
+            Bucket: "users",
+            ForeignKey: "authorId",
+            DestinationKey: "author",
+            Fields: ["username", "avatar_url", "sex"],
+        },
+        Join{
+            Bucket: "answers",
+            ForeignKey: "META(b).id",
+            DestinationKey: "answers",
+            Fields: ["*"],
+            JoinKey: "postId",
+            JoinQuery: &nefts.config.JoinQuery{
+                Config: config,
+                Options: options,
+                Start: 0,
+                End: 1,
+            }
+        },
+    },
+    Order: map[string]string{
+        "last_update": "desc"
+    },
+    QueryString: "Borderlands 3 cartels event secret puzzle author:lilux",
+}
+```
+
+And we're good ! Now our result will hold an array in the "answers" key,
+with only the most rated post.
+
+> 💡 Tip : JoinQuery key holds a pointer.
 
 ### Labels
 
@@ -459,313 +770,6 @@ distance from one another; and therefore a match is made.
 
 Consider the query string as a regular expression for search. It has to follow
 the [Go regexp syntax](https://golang.org/pkg/regexp/syntax/).
-
-## Options
-
-Parameters that can change depending on context. You can either control them
-from client or server side. This parameter is optional. If so, pass an empty
-Options structure.
-
-Full example:
-```go
-options := nefts.config.Options{
-    Fields: []string{"*", "meta.id"},
-    Where: []string{fmt.Sprintf("b.last_update < %q", timestamp)},
-    Joins: []nefts.config.Join{
-        Join{
-            Bucket: "users",
-            ForeignKey: "authorId",
-            DestinationKey: "author",
-            Fields: ["username", "avatar_url", "sex"],
-        },
-        Join{
-            Bucket: "answers",
-            ForeignKey: "META(b).id",
-            DestinationKey: "answers",
-            Fields: ["*"],
-            JoinKey: "postId"
-        },
-        Join{
-            Bucket: "users",
-            ForeignKey: "authorId",
-            DestinationKey: "answers",
-            Fields: ["username", "avatar_url", "sex"],
-            ForeignParent: "answers"
-        },
-    },
-    Order: map[string]string{
-        "last_update": "desc"
-    },
-    QueryString: "Borderlands 3 cartels event secret puzzle author:lilux",
-}
-```
-
-### Fields
-
-A list of fields to filter in the output object. Defaults value is `[]string{"*", "meta.id"}`.
-
-> 💡 Tip : * selects all non meta fields. To select meta fields such as document
-id, use the 'meta.' prefix.
-
-### Where
-
-Write additional filter conditions in N1QL format.
-
-### Joins
-
-Join tables in the query.
-
-#### Join parameters
-
-A minimal join contains the following parameters:
-```go
-Join{
-    Bucket: "users",
-    ForeignKey: "authorId",
-    DestinationKey: "author",
-    Fields: ["username", "avatar_url", "sex"],
-}
-```
-
-| Parameter | Type | Default | Required | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| Bucket | string | - | true | The bucket to join. Has to be in the same Cluster. |
-| ForeignKey | string | - | true | Foreign key in the current table referring to the distant bucket. |
-| DestinationKey | string | - | true | Key in the resulting tuple in which the joined information will be inserted. |
-| Fields | []string | - | true | Fields to filter in the distant document. **(1)** |
-| JoinKey | string | "meta.id" | - | Reference key in the distant document. |
-| ForeignParent | string | - | - | Specify a reference bucket, different from the current one. Useful for nested joins. |
-
-**(1)** You can select all fields using either "all" or "*" selectors. If you
-do so, they will be nested in a data key. For example :
-
-```go
-Join{
-    Bucket: "users",
-    ForeignKey: "authorId",
-    DestinationKey: "author",
-    Fields: ["*", "meta.id"],
-}
-```
-
-will generate the following key in the tuple sent to client :
-
-```json
-{
-  "author": {
-    "id": "my_user_id",
-    "data": {...}
-  }
-}
-```
-
-#### Example explanation
-
-Let's look back at the join we performed. It is a pretty good example about
-the possibilities of a configurable join.
-
-```go
-Joins: []nefts.config.Join{
-    Join{
-        Bucket: "users",
-        ForeignKey: "authorId",
-        DestinationKey: "author",
-        Fields: ["username", "avatar_url", "sex"],
-    },
-    Join{
-        Bucket: "answers",
-        ForeignKey: "meta.id",
-        DestinationKey: "answers",
-        Fields: ["*"],
-        JoinKey: "postId"
-    },
-    Join{
-        Bucket: "users",
-        ForeignKey: "authorId",
-        DestinationKey: "answers",
-        Fields: ["username", "avatar_url", "sex"],
-        ForeignParent: "answers"
-    },
-}
-```
-
-Our database may have, in this case, 3 document schemas :
-
-*posts*
-```json
-{
-  "title": "string",
-  "content": "string",
-  "authorId": "userId"
-}
-```
-
-*answers*
-```json
-{
-  "title": "string",
-  "content": "string",
-  "authorId": "userId",
-  "postId": "postId",
-  "score": "number"
-}
-```
-
-*users*
-```json
-{
-  "username": "string",
-  "avatar_url": "url",
-  "sex": "string"
-}
-```
-
-We want to retrieve our post, all the answers, and link those answers to
-their author.
-
-> ⚠️ Warning : this example shows some bad practice. Please refer to the
-[below section](#joinquery) for a better practice. Following example just serves as a
-demonstration for some specific options.
-
-```go
-Join{
-    Bucket: "users",
-    ForeignKey: "authorId",
-    DestinationKey: "author",
-    Fields: ["username", "avatar_url", "sex"],
-}
-```
-
-The first join is pretty easy to understand. Our post data holds the id of
-its author. But if we want some more information about her or him, we need
-to search in the users table.
-
-Here, we tell NEFTS to look for the document in users table with the ID
-provided by authorId in our document. Then, if found, we want to add the
-username, avatar_url and sex fields to the author key in our result tuple.
-
-```go
-Join{
-    Bucket: "answers",
-    ForeignKey: "meta.id",
-    DestinationKey: "answers",
-    Fields: ["*"],
-    JoinKey: "postId"
-}
-```
-
-Now, we want to retrieve every answer related to our post. It is almost the
-same structure, instead we provide a JoinKey rather than a ForeignKey.
-
-In this scenario, the link information is not holded by our post, but by the
-children, the answers. Instead of updating a large array referencing every
-answer id, we provide the answers an id for their parent post.
-
-So the request is : select every answers document where postId match our current
-document id.
-
-```go
-Join{
-    Bucket: "users",
-    ForeignKey: "authorId",
-    DestinationKey: "answers",
-    Fields: ["username", "avatar_url", "sex"],
-    ForeignParent: "answers"
-}
-```
-
-Finally, we want to retrieve the same author information for each answer as
-we did for the post. So the join configuration is the same as the first one,
-except we specify a ForeignParent bucket.
-
-#### JoinQuery
-
-The above example is a bad practice. If our post has thousands of answers,
-they will all be retrieved at once, leading to poor performances and
-eventually crash of the server.
-
-While above parameters can be used for limited sets of joined data, our
-case would rather require, for example, to only retrieve the top post,
-based on some custom criterias.
-
-Here comes the power of N1QL joins : a Join clause can hide a full nested query
-inside !
-
-Let's take again the above example, and this time try to only join the most
-rated post. Since we don't perfom nested FTS, we will go with minimal
-configuration :
-
-```go
-config := nefts.config.Config{
-    Cluster: myCouchbaseCluster,
-    Bucket: "answers",
-}
-```
-
-Let's now build a minimal Options parameter :
-```go
-options := nefts.config.Options{
-    Joins: []nefts.config.Join{
-        Join{
-            Bucket: "users",
-            ForeignKey: "authorId",
-            DestinationKey: "author",
-            Fields: ["username", "avatar_url", "sex"],
-        },
-    },
-    Order: map[string]string{
-        "score": "desc"
-    },
-}
-```
-
-Our query will just look up for the answers, ordered by descending score,
-and link them with their author.
-
-We just want the most rated post. So let's just set the limit to 1.
-But we don't actually want to run a full thread calls : we just need to build
-the nested query string. Then, for better performance, run the whole thing in
-one single call. This is where the JoinQuery option comes.
-
-JoinQuery takes every NEFTS Thread arguments as parameters. We can now
-transform our original declaration:
-
-```go
-baseOptions := nefts.config.Options{
-    Fields: []string{"*", "meta.id"},
-    Where: []string{fmt.Sprintf("b.last_update < %q", timestamp)},
-    Joins: []nefts.config.Join{
-        Join{
-            Bucket: "users",
-            ForeignKey: "authorId",
-            DestinationKey: "author",
-            Fields: ["username", "avatar_url", "sex"],
-        },
-        Join{
-            Bucket: "answers",
-            ForeignKey: "META(b).id",
-            DestinationKey: "answers",
-            Fields: ["*"],
-            JoinKey: "postId",
-            JoinQuery: &nefts.config.JoinQuery{
-                Config: config,
-                Options: options,
-                Start: 0,
-                End: 1,
-            }
-        },
-    },
-    Order: map[string]string{
-        "last_update": "desc"
-    },
-    QueryString: "Borderlands 3 cartels event secret puzzle author:lilux",
-}
-```
-
-And we're good ! Now our result will hold an array in the "answers" key,
-with only the most rated post.
-
-> 💡 Tip : JoinQuery key holds a pointer.
 
 ### Order
 
