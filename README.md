@@ -65,11 +65,10 @@ following parameters :
 queryResults, err := nefts.Thread(start, end, options)
 ```
 
-Each parameter is required, except options.
+Each parameter is required.
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |
-| config | [nefts.config.Config](#config) | Main configuration for your thread. |
 | start | uint64 | Index of the first element to retrieve, in the result set. |
 | end | uint64 | Index of the last element to retrieve, in the result set. |
 | options | [nefts.config.Options](#options) | Options to pass to your query. The difference with config is that options parameters may be controlled by client and vary on each request. |
