@@ -34,7 +34,6 @@ func BuildQueryString(
 
 	// Convert string to array of words. If labels are defined, extract those labels into different categories.
 	parsed := methods.ParseQueryString(options.QueryString, options.Labels)
-
 	selector, err := selectMethods.BuildSelectQuery(
 		parsed,
 		options.Config.Bucket,
@@ -57,12 +56,11 @@ func BuildQueryString(
 }
 
 func Thread(
-	params config.Config,
 	start uint64,
 	end uint64,
 	options config.Options,
 ) (*config.QueryResults, *config.Error) {
-	queryString, err := BuildQueryString(params, start, end, options)
+	queryString, err := BuildQueryString(start, end, options)
 
 	if err != nil {
 		return nil, err
