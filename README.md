@@ -18,12 +18,12 @@ A tool for an efficient configuration of N1QL full text search queries.
         - [Example explanation](#example-explanation)
         - [JoinQuery](#joinquery)
     - [Labels](#labels)
-            - [Label Example](#label-example)
-            - [Aliases](#aliases)
-            - [Nested fields](#nested-fields)
-            - [Labels with joins](#labels-with-joins)
-                - [Labels on computed tuple](#labels-on-computed-tuple)
-                - [Use the Bucket option](#use-the-bucket-option)
+        - [Label Example](#label-example)
+        - [Aliases](#aliases)
+        - [Nested fields](#nested-fields)
+        - [Labels with joins](#labels-with-joins)
+            - [Labels on computed tuple](#labels-on-computed-tuple)
+            - [Use the Bucket option](#use-the-bucket-option)
     - [LabelOptions](#labeloptions)
         - [Analyzer](#analyzer)
         - [Fuzziness](#fuzziness)
@@ -788,6 +788,9 @@ threading. It is of type `nefts.config.QueryResults`.
 | Flags | Flags | Indication about the last request status. |
 | Flags.BeginningOfResults | boolean | No data left below the returned set. |
 | Flags.EndOfResults | boolean | No data left after the returned set. |
+
+> 💡 Tip : Boundaries are used for pagination. There are compatible with
+ [React Endless Feed](https://www.npmjs.com/package/react-endless-feed) component.
 
 ## Error handling
 
