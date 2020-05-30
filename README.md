@@ -789,7 +789,7 @@ threading. It is of type `nefts.config.QueryResults`.
 | Flags.BeginningOfResults | boolean | No data left below the returned set. |
 | Flags.EndOfResults | boolean | No data left after the returned set. |
 
-> 💡 Tip : Boundaries are used for pagination. There are compatible with
+> 💡 Tip : Boundaries are used for pagination. This package is compatible with
  [React Endless Feed](https://www.npmjs.com/package/react-endless-feed) component.
 
 ## Error handling
