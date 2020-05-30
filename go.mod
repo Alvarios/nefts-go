@@ -1,4 +1,4 @@
-module nefts
+module github.com/Alvarios/nefts-go
 
 go 1.14
 

@@ -1,8 +1,8 @@
 package selectMethods
 
 import (
-	"nefts/config"
-	"nefts/utils"
+	"github.com/Alvarios/nefts-go/config"
+	"github.com/Alvarios/nefts-go/utils"
 	"regexp"
 )
 

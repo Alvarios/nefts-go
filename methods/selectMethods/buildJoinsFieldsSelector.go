@@ -1,7 +1,7 @@
 package selectMethods
 
 import (
-	"nefts/config"
+	"github.com/Alvarios/nefts-go/config"
 	"strings"
 )
 
