@@ -1,6 +1,6 @@
 package config
 
 type Error struct {
-	Status int `json:"status"`
+	Code    int    `json:"status"`
 	Message string `json:"message"`
 }

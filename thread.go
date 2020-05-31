@@ -22,7 +22,7 @@ func BuildQueryString(
 
 	if end < start {
 		return "", &config.Error{
-			Status: 400,
+			Code:    400,
 			Message: fmt.Sprintf("%q end point cannot be lower than %q start point !", end, start),
 		}
 	}
@@ -73,7 +73,7 @@ func Thread(
 	results, clusterErr := options.Config.Cluster.Query(queryString, nil)
 	if clusterErr != nil {
 		return nil, &config.Error{
-			Status: 500,
+			Code:    500,
 			Message: clusterErr.Error(),
 		}
 	}

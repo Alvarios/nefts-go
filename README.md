@@ -802,7 +802,7 @@ NEFTS returns a pointer to an error object adapted to web servers.
 
 | Key | Type | Description |
 | :--- | :--- | :--- |
-| Status | int | The http status of the error. |
+| Code | int | The http status of the error. |
 | Message | string | Describes the nature of the error. |
 
 ## Copyright

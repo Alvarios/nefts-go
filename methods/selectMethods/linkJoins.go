@@ -44,7 +44,7 @@ func linkJoins(
 
 		if value.ForeignKey == "" {
 			return "", &config.Error{
-				Status: 400,
+				Code:    400,
 				Message: "Missing foreign key parameter in joined fields.",
 			}
 		}

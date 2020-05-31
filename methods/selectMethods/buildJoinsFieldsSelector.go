@@ -25,7 +25,7 @@ func buildJoinsFieldsSelector(joins []config.Join) (string, *config.Error) {
 		for _, value := range joins {
 			if value.Bucket == "" {
 				return "", &config.Error{
-					Status: 400,
+					Code:    400,
 					Message: "Missing bucket parameter in joined fields.",
 				}
 			}
