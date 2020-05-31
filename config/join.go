@@ -3,8 +3,8 @@ package config
 type JoinQuery struct {
 	Config Config `json:"config"`
 	Options Options `json:"options"`
-	Start uint64 `json:"start"`
-	End uint64 `json:"end"`
+	Start int64 `json:"start"`
+	End int64 `json:"end"`
 }
 
 type Join struct {

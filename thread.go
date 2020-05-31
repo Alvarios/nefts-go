@@ -11,8 +11,8 @@ import (
 )
 
 func BuildQueryString(
-	start uint64,
-	end uint64,
+	start int64,
+	end int64,
 	options config.Options,
 ) (string, *config.Error) {
 	// Allow negative start value but cap it to 0.
@@ -50,14 +50,14 @@ func BuildQueryString(
 	order := orderMethods.BuildOrderQuery(parsed, options.Order, options.LabelsOptions)
 
 	finalQuery := selector + "\n\t" + where + "\n\t" + order + "\n\tLIMIT " +
-		strconv.FormatUint(end - start, 10) + " OFFSET " + strconv.FormatUint(start, 10)
+		strconv.FormatInt(end - start, 10) + " OFFSET " + strconv.FormatInt(start, 10)
 
 	return finalQuery, nil
 }
 
 func Thread(
-	start uint64,
-	end uint64,
+	start int64,
+	end int64,
 	options config.Options,
 ) (*config.QueryResults, *config.Error) {
 	queryString, err := BuildQueryString(start, end, options)
@@ -91,10 +91,10 @@ func Thread(
 	}
 
 	output.Boundaries.Start = start
-	output.Boundaries.End = start + uint64(len(output.Results))
+	output.Boundaries.End = start + int64(len(output.Results))
 
 	output.Flags.BeginningOfResults = start == 0
-	output.Flags.EndOfResults = uint64(len(output.Results)) < (end - start)
+	output.Flags.EndOfResults = int64(len(output.Results)) < (end - start)
 
 	return &output, nil
 }

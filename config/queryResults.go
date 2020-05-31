@@ -1,8 +1,8 @@
 package config
 
 type Boundaries struct {
-	Start uint64 `json:"start"`
-	End uint64 `json:"end"`
+	Start int64 `json:"start"`
+	End int64 `json:"end"`
 }
 
 type Flags struct {
