@@ -84,28 +84,30 @@ This function returns two results :
 
 Full example:
 ```go
-options := nefts.config.Options{
-    Config: nefts.config.Config{
+import config "github.com/Alvarios/nefts-go/config"
+
+options := config.Options{
+    Config: config.Config{
         Cluster: myCouchbaseCluster,
         Bucket: "myBucket",
     },
     Fields: []string{"*", "meta.id"},
     Where: []string{fmt.Sprintf("b.last_update < %q", timestamp)},
-    Joins: []nefts.config.Join{
-        Join{
+    Joins: []config.Join{
+        config.Join{
             Bucket: "users",
             ForeignKey: "authorId",
             DestinationKey: "author",
             Fields: ["username", "avatar_url", "sex"],
         },
-        Join{
+        config.Join{
             Bucket: "answers",
             ForeignKey: "META(b).id",
             DestinationKey: "answers",
             Fields: ["*"],
             JoinKey: "postId"
         },
-        Join{
+        config.Join{
             Bucket: "users",
             ForeignKey: "authorId",
             DestinationKey: "answers",
@@ -117,8 +119,8 @@ options := nefts.config.Options{
         "genre": ["g", "genre"],
         "user.username": ["username"],
     },
-    LabelOptions: map[string]nefts.config.LabelOption{
-        "genre": LabelOption{
+    LabelOptions: map[string]config.LabelOption{
+        "genre": config.LabelOption{
             Analyzer: "standard",
             Fuzziness: "2",
             Out: "{key}_query_score",
@@ -127,7 +129,7 @@ options := nefts.config.Options{
             PhraseMode: false,
             RegexpMode: false,
         },
-        "user.username": LabelOption{
+        "user.username": config.LabelOption{
             Weight: "1",
         },
     },
@@ -146,7 +148,7 @@ for each of your methods, depending on your needs.
 Minimal example:
 
 ```go
-Config : nefts.config.Config{
+Config : config.Config{
     Cluster: myCouchbaseCluster,
     Bucket: "myBucket",
 }
@@ -155,10 +157,10 @@ Config : nefts.config.Config{
 Full example:
 
 ```go
-Config : nefts.config.Config{
+Config : config.Config{
     Cluster: myCouchbaseCluster,
     Bucket: "myBucket",
-    Parameters: nefts.config.Parameters{
+    Parameters: config.Parameters{
         MaxQueryLength: 1000,
         Debug: false,
     },
@@ -203,7 +205,7 @@ Join tables in the query.
 
 A minimal join contains the following parameters:
 ```go
-Join{
+config.Join{
     Bucket: "users",
     ForeignKey: "authorId",
     DestinationKey: "author",
@@ -224,7 +226,7 @@ Join{
 do so, they will be nested in a data key. For example :
 
 ```go
-Join{
+config.Join{
     Bucket: "users",
     ForeignKey: "authorId",
     DestinationKey: "author",
@@ -249,21 +251,21 @@ Let's look back at the join we performed. It is a pretty good example about
 the possibilities of a configurable join.
 
 ```go
-Joins: []nefts.config.Join{
-    Join{
+Joins: []config.Join{
+    config.Join{
         Bucket: "users",
         ForeignKey: "authorId",
         DestinationKey: "author",
         Fields: ["username", "avatar_url", "sex"],
     },
-    Join{
+    config.Join{
         Bucket: "answers",
         ForeignKey: "meta.id",
         DestinationKey: "answers",
         Fields: ["*"],
         JoinKey: "postId"
     },
-    Join{
+    config.Join{
         Bucket: "users",
         ForeignKey: "authorId",
         DestinationKey: "answers",
@@ -312,7 +314,7 @@ their author.
 demonstration for some specific options.
 
 ```go
-Join{
+config.Join{
     Bucket: "users",
     ForeignKey: "authorId",
     DestinationKey: "author",
@@ -329,7 +331,7 @@ provided by authorId in our document. Then, if found, we want to add the
 username, avatar_url and sex fields to the author key in our result tuple.
 
 ```go
-Join{
+config.Join{
     Bucket: "answers",
     ForeignKey: "meta.id",
     DestinationKey: "answers",
@@ -349,7 +351,7 @@ So the request is : select every answers document where postId match our current
 document id.
 
 ```go
-Join{
+config.Join{
     Bucket: "users",
     ForeignKey: "authorId",
     DestinationKey: "answers",
@@ -380,7 +382,7 @@ rated post. Since we don't perfom nested FTS, we will go with minimal
 configuration :
 
 ```go
-config := nefts.config.Config{
+config := config.Config{
     Cluster: myCouchbaseCluster,
     Bucket: "answers",
 }
@@ -388,9 +390,9 @@ config := nefts.config.Config{
 
 Let's now build a minimal Options parameter :
 ```go
-options := nefts.config.Options{
+options := config.Options{
     Joins: []nefts.config.Join{
-        Join{
+        config.Join{
             Bucket: "users",
             ForeignKey: "authorId",
             DestinationKey: "author",
@@ -415,23 +417,23 @@ JoinQuery takes every NEFTS Thread arguments as parameters. We can now
 transform our original declaration:
 
 ```go
-baseOptions := nefts.config.Options{
+baseOptions := config.Options{
     Fields: []string{"*", "meta.id"},
     Where: []string{fmt.Sprintf("b.last_update < %q", timestamp)},
-    Joins: []nefts.config.Join{
-        Join{
+    Joins: []config.Join{
+        config.Join{
             Bucket: "users",
             ForeignKey: "authorId",
             DestinationKey: "author",
             Fields: ["username", "avatar_url", "sex"],
         },
-        Join{
+        config.Join{
             Bucket: "answers",
             ForeignKey: "META(b).id",
             DestinationKey: "answers",
             Fields: ["*"],
             JoinKey: "postId",
-            JoinQuery: &nefts.config.JoinQuery{
+            JoinQuery: &config.JoinQuery{
                 Config: config,
                 Options: options,
                 Start: 0,
@@ -567,15 +569,17 @@ in another bucket. Let's perform the following join (more details in the
 
 ```go
 // More details in the options section.
-options := nefts.config.Options{
+options := config.Options{
     //...
-    Joins: []nefts.config.Join{
-        Bucket: "users",
-        // The important parameter.
-        ForeignKey: "authorId",
-        // All joined data will be stored under the 'author' key in results.
-        DestinationKey: "author",
-        Fields: ["*"],
+    Joins: []config.Join{
+        config.Join{
+            Bucket: "users",
+            // The important parameter.
+            ForeignKey: "authorId",
+            // All joined data will be stored under the 'author' key in results.
+            DestinationKey: "author",
+            Fields: ["*"],
+        }
     }
 }
 ```
@@ -669,7 +673,7 @@ label key to apply the options to, and value lists those options.
 Let's take a look at a typical set of options :
 
 ```go
-options := LabelOption{
+options := config.LabelOption{
     Analyzer: "standard",
     Fuzziness: "2",
     Out: "{key}_query_score",
@@ -682,7 +686,7 @@ options := LabelOption{
 
 //...
 
-LabelOptions: map[string]nefts.config.LabelOption{
+LabelOptions: map[string]config.LabelOption{
     "my.key": options
 }
 ```
